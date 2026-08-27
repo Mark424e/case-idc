@@ -165,6 +165,51 @@ export default function IdcQuiz() {
             </motion.p>
           </motion.div>
         )}
+
+        {slide === 3 && (
+          <motion.div
+            key="slide3"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex flex-col items-center text-center max-w-md w-full"
+          >
+            <motion.span
+              variants={itemVariants}
+              className="text-6xl mb-4 inline-block"
+            >
+              🎉
+            </motion.span>
+            <motion.h2
+              variants={itemVariants}
+              className="text-4xl font-black mb-2"
+            >
+              You're right!
+            </motion.h2>
+            <motion.h3
+              variants={itemVariants}
+              className="text-2xl font-bold mb-4"
+            >
+              You're just wasting your time.
+            </motion.h3>
+            <motion.p
+              variants={itemVariants}
+              className="text-sm text-gray-600 mb-8"
+            >
+              Absolutely nobody asked for that essay.
+            </motion.p>
+            <motion.button
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={nextSlide}
+              className="bg-[#D81B60] text-white border-2 border-black font-bold py-3.5 px-8 rounded-full shadow-lg text-lg cursor-pointer"
+            >
+              Continue 💀
+            </motion.button>
+          </motion.div>
+        )}
       </AnimatePresence>
     </main>
   );
