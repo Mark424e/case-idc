@@ -5,8 +5,26 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function IdcQuiz() {
   const [slide, setSlide] = useState(1);
+  const [evasivePos, setEvasivePos] = useState({ top: 0, left: 0 });
+
+  const dodgeCursor = () => {
+    const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 600;
+    const screenHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+
+    const maxX = Math.min(350, screenWidth / 2 - 80);
+    const maxY = Math.min(250, screenHeight / 2 - 100);
+
+    const randomX = (Math.random() - 0.5) * 2 * maxX;
+    const randomY = (Math.random() - 0.5) * 2 * maxY;
+
+    setEvasivePos({
+      top: randomY,
+      left: randomX,
+    });
+  };
 
   const nextSlide = () => {
+    setEvasivePos({ top: 0, left: 0 });
     setSlide((prev) => prev + 1);
   };
 
@@ -89,6 +107,62 @@ export default function IdcQuiz() {
             >
               Next →
             </motion.button>
+          </motion.div>
+        )}
+
+        {slide === 2 && (
+          <motion.div
+            key="slide2"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex flex-col items-center text-center max-w-md w-full"
+          >
+            <motion.h2
+              variants={itemVariants}
+              className="text-3xl font-extrabold mb-8 leading-tight"
+            >
+              No, like... do you{' '}
+              <span className="text-[#D81B60] italic">really</span> think I'm
+              reading all of that?
+            </motion.h2>
+            <motion.div
+              variants={itemVariants}
+              className="flex gap-6 justify-center items-center w-full min-h-[100px] relative"
+            >
+              <motion.button
+                onMouseEnter={dodgeCursor}
+                onTouchStart={dodgeCursor}
+                animate={{
+                  x: evasivePos.left,
+                  y: evasivePos.top,
+                }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 600,
+                  damping: 15,
+                  mass: 0.5,
+                }}
+                className="bg-white text-black border-2 border-black font-bold py-2.5 px-6 rounded-full shadow cursor-pointer"
+              >
+                Yes
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={nextSlide}
+                className="bg-[#D81B60] text-white border-2 border-black font-bold py-2.5 px-6 rounded-full shadow z-10 cursor-pointer"
+              >
+                No
+              </motion.button>
+            </motion.div>
+            <motion.p
+              variants={itemVariants}
+              className="text-xs text-gray-500 mt-6"
+            >
+              (choose wisely)
+            </motion.p>
           </motion.div>
         )}
       </AnimatePresence>
