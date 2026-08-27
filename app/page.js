@@ -1,11 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useSpring } from 'framer-motion';
 
 export default function IdcQuiz() {
   const [slide, setSlide] = useState(1);
   const [evasivePos, setEvasivePos] = useState({ top: 0, left: 0 });
+
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [sliderAttempts, setSliderAttempts] = useState(0);
+  const isDragging = useRef(false);
+
+  const ballY = useSpring(0, {
+    stiffness: 900,
+    damping: 12,
+    mass: 0.8,
+  });
+
+  useEffect(() => {
+    if (slide !== 4) return;
+
+    const interval = setInterval(() => {
+      if (!isDragging.current) {
+        const currentY = ballY.get();
+        if (currentY < 0) {
+          ballY.set(Math.min(0, currentY + 50));
+        }
+      }
+    }, 16);
+
+    return () => clearInterval(interval);
+  }, [slide, ballY]);
 
   const dodgeCursor = () => {
     const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 600;
@@ -26,6 +51,13 @@ export default function IdcQuiz() {
   const nextSlide = () => {
     setEvasivePos({ top: 0, left: 0 });
     setSlide((prev) => prev + 1);
+  };
+
+  const handleBallDrop = () => {
+    isDragging.current = false;
+    ballY.set(0);
+    setHasInteracted(true);
+    setSliderAttempts((prev) => prev + 1);
   };
 
   const containerVariants = {
@@ -208,6 +240,112 @@ export default function IdcQuiz() {
             >
               Continue 💀
             </motion.button>
+          </motion.div>
+        )}
+
+        {slide === 4 && (
+          <motion.div
+            key="slide4"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex flex-col items-center text-center max-w-md w-full"
+          >
+            <motion.h2
+              variants={itemVariants}
+              className="text-2xl font-bold mb-1"
+            >
+              On a scale of "don't care at all" to "care sooo much"...
+            </motion.h2>
+            <motion.p
+              variants={itemVariants}
+              className="text-xs text-gray-600 mb-6"
+            >
+              How much do I actually care about your message?
+            </motion.p>
+
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col items-center gap-3 mb-6"
+            >
+              <span className="text-xs font-extrabold text-[#D81B60] tracking-wide">
+                I CARE SOOO MUCH 😼
+              </span>
+
+              <div className="relative flex justify-center items-end">
+                <div
+                  className="w-12 h-64 bg-white border-2 border-black rounded-full relative cursor-grab active:cursor-grabbing touch-none p-1 flex justify-center"
+                  onPointerDown={(e) => {
+                    isDragging.current = true;
+                    e.currentTarget.setPointerCapture(e.pointerId);
+
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const rawOffsetY = Math.max(0, rect.bottom - e.clientY - 24);
+                    const maxHeight = rect.height - 48;
+
+                    const resistedY = Math.min(maxHeight, rawOffsetY * 0.25);
+                    ballY.set(-resistedY);
+                  }}
+                  onPointerMove={(e) => {
+                    if (!isDragging.current) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+
+                    const rawOffsetY = Math.max(0, rect.bottom - e.clientY - 24);
+                    const maxHeight = rect.height - 48;
+
+                    const resistedY = Math.min(maxHeight, rawOffsetY * 0.25);
+                    ballY.set(-resistedY);
+                  }}
+                  onPointerUp={(e) => {
+                    e.currentTarget.releasePointerCapture(e.pointerId);
+                    handleBallDrop();
+                  }}
+                  onPointerCancel={() => {
+                    handleBallDrop();
+                  }}
+                >
+                  <motion.div
+                    style={{ y: ballY }}
+                    className="w-10 h-10 bg-[#D81B60] border-2 border-black rounded-full flex items-center justify-center text-sm shadow-md absolute bottom-1 pointer-events-none select-none"
+                  >
+                    💅
+                  </motion.div>
+                </div>
+              </div>
+
+              <span className="text-xs font-extrabold text-gray-700 tracking-wide">
+                I DON'T CARE AT ALL 🐱
+              </span>
+            </motion.div>
+
+            <div className="w-full h-24 relative flex flex-col items-center justify-start">
+              <AnimatePresence>
+                {sliderAttempts >= 3 && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-xs text-[#D81B60] font-semibold absolute top-0"
+                  >
+                    Oops... it keeps slipping down 🥑
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              {hasInteracted && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={nextSlide}
+                  className="w-full bg-[#D81B60] text-white border-2 border-black font-black py-3.5 px-6 rounded-full shadow-lg text-lg absolute bottom-0 cursor-pointer"
+                >
+                  DING DING DING 🔔
+                </motion.button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
